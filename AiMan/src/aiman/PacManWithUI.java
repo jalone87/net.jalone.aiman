@@ -35,6 +35,7 @@ import sim.portrayal.grid.*;
 import java.awt.event.*;
 
 /** Creates the UI for the PacMan game. */
+
 public class PacManWithUI extends GUIState {
 	public Display2D display;
 	public JFrame displayFrame;
