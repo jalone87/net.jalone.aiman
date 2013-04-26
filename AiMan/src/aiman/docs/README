@@ -1,0 +1,61 @@
+=================
+====  AiMan  ==== 
+=================
+
+This version of the original MASON Pac Man has been developed 
+
+== requirements:
+	- project require jul4j.jar library in the build/class path
+	- and Mason obviously (that need many other libs, see its INSTALL)
+
+== new features:
+	- added a Quit routine
+	- added a pacs package containing all new pacs extensions/imlementations
+	- created a pac hierarchy in order to manage both human, and ai players.
+	- created some data structures needed for management of decision makeing
+	- TODO created some data structures needed for management of learning procedures
+	
+== fixs:
+	- project cleaned of all warnings
+	
+== howto?
+	- how to discretize the decisions to be taken everytime a new grid cell is entered and not at each step?
+	- how to get the correct closer object from bag or some containers?
+	
+== todo:
+	- provide a pac factory to avoid editing pacman.java each time a change to pac implementation is performed
+	- add probability to action array (1st 70% or higher, 2nd 20%)
+	
+== bugs:
+	- after a while (never soon) ObsHandler start trigging exceptions. probably some kind of overflow.
+	- once the action is choosen the location of the target direction is sometimes ( in meaningful times ) wrong.
+	
+== bibliography:
+	- szita07: Learning to Play Using Low-Complexity Rule-Based Policies: Illustrations through Ms. Pac-Man; 2007; Istvan Szita, Andras Lorincz
+
+=================
+= MASON Pac Man =
+=================
+
+sim.app.pacman
+
+This is a moderately faithful reimplementation of Pac Man, with a few 
+differences and twists.  Major differences:
+
+- No "scatter" behavior, though the ghost behaviors are otherwise fairly
+  faithful.
+- The Pac's animation is somewhat different
+- No fruit
+
+Major twists:
+
+- You can have as many lives as you want.
+
+- We enable multiple mazes.  Two by default are included.  Mazes are
+  simple PBM files.
+
+- We enable multiple pacs.  By default that's turned on.  Control the
+  second Pac with the adws keys and the first pac with the arrow keys.
+  You might try experimenting with subclasses of Pac to create AI pacs
+  of your own (we've done that in-house).
+

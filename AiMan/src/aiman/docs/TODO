@@ -1,0 +1,12 @@
+TODO:
+
+- once debugged remove all instances in pacman and pacmanWithUi about visual debuggin info like 'PacMan::actionGoals' atc...
+
+- insert Teacher
+- teacher.evaluate get called at the very beginning one time much. avoid.
+- AutoPac improve toLocation ( eliminate local minima ) ( with A* ?)
+- AutoPac::actionFromGhost migliorare... minimo locale anche qui
+- in multiplayer scoring  system is based on global player score, avoid. make each player has its score.
+- weird application behaviour (about scoring) on R - restart key pressed
+
+- MAKE PAC TO NOT TO MOVE IF ACTION IS NOT POSSIBLE, SO IT WILL GAIN NO POINTS AND LEARNING WILL BE EASYER, DONT PICK NEXT
