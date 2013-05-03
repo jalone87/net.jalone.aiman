@@ -1,8 +1,7 @@
 package aiman.pacs.behaviours;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import ec.util.MersenneTwisterFast;
@@ -25,10 +24,10 @@ public class Policy {
 	private MersenneTwisterFast randomFast;
 	
 	private Map<String, Boolean> actions;	/** available actions */
-	private List<Rule> rules;				/** ordered, keep selected policies*/
+	private Rule[] rules;					/** ordered, keep selected policies*/
 	private ObservationsHandler obsHandler;
 	
-	public Policy(ObservationsHandler obsHandler){
+	public Policy(ObservationsHandler obsHandler, int numberOfRulesSlot){
 		
 		this.obsHandler = obsHandler;
 		
@@ -44,24 +43,39 @@ public class Policy {
 		//this.actions.put(AutoPac.ACTION_TO_LOWER_GHOST_DENSITY, false);
 		//this.actions.put(AutoPac.ACTION_TO_GHOST_AREA_FREE, false);
 
-		this.rules = new ArrayList<Rule>();		
+		this.rules = new Rule[numberOfRulesSlot];
+		Arrays.fill(this.rules, null);		
 
 	}
 
 	/**
-	 * an initialized rule r is pushed in the rules pool
-	 * @param rule a Rule
+	 * an initialized rule r is pushed in the rules pool at a given position (replacing the existing one if any)
+	 * @param rule an initialized Rule
+	 */
+	public void pushRule(Rule rule, int index){
+		this.rules[index] = rule;
+	}
+	
+	/**
+	 * an initialized rule r is pushed in the rules pool in the first available (null) slot
+	 * @param rule an initialized Rule
 	 */
 	public void pushRule(Rule rule){
-		this.rules.add(rule);
+		for(int index = 0; index < this.rules.length; index++){
+			if(this.rules[index] == null){
+				this.pushRule(rule, index);
+				return;//function exit here if empty slot found
+			}
+		}
+		throw new IndexOutOfBoundsException("No empty slot of " + this.rules.length + " found in Policy!");
 	}
 	
 	public int size(){
-		return this.rules.size();
+		return this.rules.length;
 	}
 	
 	public void clear(){
-		this.rules.clear();
+		Arrays.fill(this.rules, null);
 		for(Map.Entry<String, Boolean> e: actions.entrySet()){
 			e.setValue(false);
 		}
@@ -90,7 +104,9 @@ public class Policy {
 		obsHandler.update();
 		
 		for(Rule rule: rules){ 
-			rule.switchAction();
+			if(rule != null){
+				rule.switchAction();
+			}
 		}
 		//Logger.getInstance().log(this.toString());
 	}

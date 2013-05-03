@@ -37,7 +37,7 @@ public class Teacher {
 	private MersenneTwisterFast random = new MersenneTwisterFast();
 	
 	/** size of the rulesSlot TODO should be final? can be edited during learning? */
-	private int M = 5; 	
+	private int M = 5;
 	
 	/**  K is the rules pool size (number of rules in rulebase) */
 	private int K;		
@@ -65,7 +65,7 @@ public class Teacher {
 		this.resultsHistory = new LinkedList<Integer>();
 		
 		rulesSlots = new int[M]; 
-		policy = new Policy(new ObservationsHandler(this.pacman));
+		policy = new Policy(new ObservationsHandler(this.pacman), M);
 		buildRuleBase();
 		cem = new TeacherCEMethod(M, K);
 	}

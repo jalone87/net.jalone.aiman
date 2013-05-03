@@ -13,7 +13,7 @@ public class RandomPac extends AutoPac {
 	public RandomPac(PacMan pacman, int tag) {
 		super(pacman, tag);
 
-		this.policies = new Policy(new ObservationsHandler(pacman));
+		this.policies = new Policy(new ObservationsHandler(pacman),0);
 
 	}
 

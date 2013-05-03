@@ -30,7 +30,7 @@ public class AiPac extends AutoPac {
     public AiPac(PacMan pacman, int tag) {
         super(pacman, tag);
         
-		this.policy = new Policy(new ObservationsHandler(pacman));
+		this.policy = new Policy(new ObservationsHandler(pacman), 3);
     }
     
 	@Override

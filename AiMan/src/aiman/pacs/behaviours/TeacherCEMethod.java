@@ -1,8 +1,6 @@
 package aiman.pacs.behaviours;
 
 import java.util.LinkedList;
-import java.util.ListIterator;
-import java.util.TreeSet;
 
 /**
  * this class perform the Cross Entrophy Method for the Pac Learning Task of the Teacher class
@@ -11,24 +9,48 @@ import java.util.TreeSet;
  */
 public class TeacherCEMethod {
 
-	private int M; 	/** M is the number of slots */
-	private int K;	/** K is the number of rules */
+	/** M is the number of slots */
+	private int M; 	
+	
+	/** K is the number of rules */
+	private int K;	
 
-	//CEM parameters
-	private static final int	T 		= 50;		/**CEM iteration main loop max iterations*/ //(T)
-	private static final int 	N 		= 1000;		/**population size */
-	private static final double rho 	= 0.05; 	/**selection ratio */
-	private static final double alfa	= 0.6;		/**step size per-episode ( the per-instance one alfaPrime = alpha/(rho*N) ) */
-	private static final double beta 	= 0.98;		/**decay rate, decreased value of p(j) for each step to not use a slot (jth) */
+	//####CEM parameters
+	
+	/**CEM iteration main loop max iterations*/ //(T)
+	private static final int	T 		= 50;	
+	
+	/**population size, possible ways of drawings M elements from pool into slots, was 1000*/
+	private static final int 	N 		= 200;		
+	
+	/**selection ratio */
+	private static final double rho 	= 0.05; 	
+	
+	/**step size per-episode ( the per-instance one alfaPrime = alpha/(rho*N) ) */
+	private static final double alfa	= 0.6;		
+	
+	/**decay rate, decreased value of p(j) for each step to not use a slot (jth) */
+	private static final double beta 	= 0.98;		
 
-	//CEM probabilities matrices //TODO make private and set accessors
-	public double probp[]; /** whether a slot i will be filled (with probability probp[i]) or not */
-	public double probq[][]; /** probability distribution (normalized for each line) of wich rule to pick for each slot */
+	//#### CEM probabilities matrices //TODO make private and set accessors
+	
+	/** whether a slot i will be filled (with probability probp[i]) or not */
+	public double probp[]; 
+	
+	/** probability distribution (normalized for each line) of wich rule to pick for each slot */
+	public double probq[][]; 
 
-	//CEM state
-	private int cemt = 0;	/**learning main loop index */
-	private int cemi = 0; 	/**population pointer*/
-	private LinkedList<Integer> samples;  /**samples storage*/
+	//#### CEM state
+	
+	/**learning main loop index */
+	private int cemt = 0;	
+	
+	/**population pointer*/
+	private int cemi = 0; 	
+	
+	/**samples storage*/
+	//TODO private Map<Policy, Integer> samples; 
+	private LinkedList<Integer> samples;  
 
 	public TeacherCEMethod(int Mm, int Kk){
 		this.M = Mm;
@@ -52,7 +74,7 @@ public class TeacherCEMethod {
 		samples = new LinkedList<Integer>();
 	}
 
-	public void update(int score){
+	public void update(int score){  //per ogni partita giocata
 
 		/*if( cemt < T ){
 			if( cemi < N ){
@@ -73,7 +95,30 @@ public class TeacherCEMethod {
 			}else{
 				int lowerEliteSample = Math.min(49, samples.size()-1); //rho*N - 1;
 				int gamma = samples.get(lowerEliteSample); //TODO .score
-
+				
+				
+				//update probp
+				 for(ogni slot j-esimo in probp: p){
+				 	int counter_p = 0;
+				 	for(policy elite: policy){
+				 		if(slot j in policy != null){
+				 			counter_p++;
+				 		}
+				 	}
+				 	p_j = counter_p / rho*N;
+				 }
+				
+				//update probq
+				for(ogni slot j-esimo in probq){
+					int counter_q = 0;
+					for(ogni regola k-esima in probq: q){
+						if(slot j in policy == k){
+				 			counter_q++;
+				 		}
+						q[j,k] = counter_q / rho*N;
+					}
+				}
+				
 				resetSamples();
 				cemt++;
 			}

@@ -1,7 +1,7 @@
 net.jalone.aiman
 ================
 
-AiMan Machie Learning Ppoject
+AiMan Machine Learning Project
 
-project just created, ill upload credits, references and license asap.
+project just created, i'll upload credits, references and license asap.
 
