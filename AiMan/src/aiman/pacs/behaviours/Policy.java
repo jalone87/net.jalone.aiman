@@ -47,7 +47,33 @@ public class Policy {
 		Arrays.fill(this.rules, null);		
 
 	}
+	
+	/** return the number of the rules slots */
+	public int getNumberOfRulesSlot(){
+		return rules.length;
+	}
 
+	/**
+	 * check wether a rule exists and has id ruleId
+	 * @return true if rule exists and has id ruleId
+	 */
+	public boolean hasRuleAt(int ruleIndex, int ruleId){
+		if(isRuleSlotNull(ruleIndex)){
+			return false;
+		}
+		return rules[ruleIndex].getId() == ruleId;
+	}
+	
+	/** */
+	public boolean isRuleSlotNull(int slotIndex){
+		if(slotIndex < rules.length){
+			return rules[slotIndex] == null;
+		}else{
+			throw new IndexOutOfBoundsException("Policy rules slot index " + slotIndex + "is out of bound.");
+		}
+	}
+	
+	
 	/**
 	 * an initialized rule r is pushed in the rules pool at a given position (replacing the existing one if any)
 	 * @param rule an initialized Rule
@@ -105,7 +131,7 @@ public class Policy {
 		
 		for(Rule rule: rules){ 
 			if(rule != null){
-				rule.switchAction();
+				rule.switchAction(this);
 			}
 		}
 		//Logger.getInstance().log(this.toString());

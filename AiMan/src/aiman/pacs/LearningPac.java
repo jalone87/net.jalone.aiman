@@ -42,7 +42,7 @@ public class LearningPac extends AutoPac {
 		performAction(direction); //execute low level action
 	}
 
-	public void learnPolicy(Policy policy){
+	public void adoptPolicy(Policy policy){
 		this.policy = policy;
 	}
 	

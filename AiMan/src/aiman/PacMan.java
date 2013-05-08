@@ -34,7 +34,7 @@ public class PacMan extends SimState {
 
 	public int MAX_MAZES = 2;
 
-	public int numPacs = 2;
+	public int numPacs = 1;
 
 	/** Holds the ghosts and the Pac. */
 	public Continuous2D agents;
@@ -79,6 +79,7 @@ public class PacMan extends SimState {
 	public PacMan(long seed) {
 		super(seed);
 		teacher = new Teacher(this);
+		//TODO create observation handler here and pass it down. 
 	}
 
 	/**
@@ -98,23 +99,25 @@ public class PacMan extends SimState {
 		actionGoals = new Continuous2D(1.0, maze.getWidth(), maze.getHeight());
 
 		resetGame();
+		teacher.setState(TeachingState.TEACHING); 
 	}
 
 	/**
-	 * Resets the game board. Doesn't change the score or deaths or level number
+	 * Resets the game board. 
 	 */
 	public void resetGame() {
 
-		//a game has been played, evaluate it
-		if(gameNumber > 0){
-			teacher.evaluate(score);
+		if(teacher.isTeachingComplete()){
+			isLearning = false;
+			teacher.printResultsHistory();
+			this.finish();
 		}
 		
-		if(isLearning){
-			teacher.setState(TeachingState.TEACHING); //trick to avoid first turn, avoid in a more elegant way if possible
-		}else{
-			teacher.setState(TeachingState.PLAYING);
+		//a game has been played, evaluate it (and teach if needed)
+		if(gameNumber > 0){
+			teacher.evaluateAndTeach(score);
 		}
+		
 		score = 0;
 		dots.clearAll();
 
@@ -206,7 +209,9 @@ public class PacMan extends SimState {
 		LearningPac pac = new LearningPac(this, 0);
 		FileLogger.getInstance().log();
 		FileLogger.getInstance().log("### Game " + gameNumber + " ; agent: " + pac.getClass().getName());
-		teacher.teach(pac);
+		
+		teacher.createAndGivePolicy(pac);
+		
 		pacs[0] = pac;//TODO THIS MUST BE AN AUTOPAC ( find a way to decrease coupling )
 		
 		if (pacs.length > 1)

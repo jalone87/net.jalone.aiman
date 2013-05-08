@@ -2,6 +2,8 @@ package aiman.pacs.behaviours;
 
 import java.util.LinkedList;
 
+import net.jalone.jul4j.logging.FileLogger;
+
 /**
  * this class perform the Cross Entrophy Method for the Pac Learning Task of the Teacher class
  * @author jalone
@@ -18,13 +20,15 @@ public class TeacherCEMethod {
 	//####CEM parameters
 	
 	/**CEM iteration main loop max iterations*/ //(T)
-	private static final int	T 		= 50;	
+	private static final int	T 		= 5;//50;	
 	
 	/**population size, possible ways of drawings M elements from pool into slots, was 1000*/
-	private static final int 	N 		= 200;		
+	private static final int 	N 		= 3;//200;		
 	
 	/**selection ratio */
-	private static final double rho 	= 0.05; 	
+	private static final double	 rho 	= 0.05; //TODO set properly
+	private static final int	 rhoInv	= 3;  //TODO set really inverse of rho
+	private int numEliteSamples 		= 2;
 	
 	/**step size per-episode ( the per-instance one alfaPrime = alpha/(rho*N) ) */
 	private static final double alfa	= 0.6;		
@@ -46,13 +50,16 @@ public class TeacherCEMethod {
 	private int cemt = 0;	
 	
 	/**population pointer*/
-	private int cemi = 0; 	
+	private int cemi; 	
 	
-	/**samples storage*/
-	//TODO private Map<Policy, Integer> samples; 
-	private LinkedList<Integer> samples;  
+	/** wether the method has finished iterations or not */
+	private boolean teachingFinished;
+	
+	/**samples storage, keep ordered first samples have higher score, TODO make specific container*/
+	private LinkedList<GameOutcome> outcomeSamples; 
 
 	public TeacherCEMethod(int Mm, int Kk){
+		this.teachingFinished = false;
 		this.M = Mm;
 		this.K = Kk;
 		probp = new double[M];
@@ -71,117 +78,111 @@ public class TeacherCEMethod {
 
 	public void resetSamples(){
 		cemi = 0;
-		samples = new LinkedList<Integer>();
+		outcomeSamples = new LinkedList<GameOutcome>();
 	}
 
-	public void update(int score){  //per ogni partita giocata
+	public void update(GameOutcome sample){  //per ogni partita giocata	
 
-		/*if( cemt < T ){
-			if( cemi < N ){
+		cemi++; //a game has just been played
 
-				//add sample in the correct position
-				//TODO use iterators
-				int it = 0;
-				boolean inserted = false;
-				while(it<samples.size() && !inserted){
-					if(score > samples.get(it)){
-						samples.add(score);
-					}
-				}
-				if(!inserted){
-					samples.add(score);
-				}
-				cemi++;
-			}else{
-				int lowerEliteSample = Math.min(49, samples.size()-1); //rho*N - 1;
-				int gamma = samples.get(lowerEliteSample); //TODO .score
-				
-				
-				//update probp
-				 for(ogni slot j-esimo in probp: p){
-				 	int counter_p = 0;
-				 	for(policy elite: policy){
-				 		if(slot j in policy != null){
-				 			counter_p++;
-				 		}
-				 	}
-				 	p_j = counter_p / rho*N;
-				 }
-				
-				//update probq
-				for(ogni slot j-esimo in probq){
-					int counter_q = 0;
-					for(ogni regola k-esima in probq: q){
-						if(slot j in policy == k){
-				 			counter_q++;
-				 		}
-						q[j,k] = counter_q / rho*N;
-					}
-				}
-				
+		FileLogger.getInstance().log(cemt + " " + cemi + " size: " + outcomeSamples.size());
+		
+		if( cemt < T ){ //until learning is finished
+
+			insertSample(sample);
+			
+			if(cemi >= N){ //a learning iteration has been completed with the previous game, then elaborate those
+
+				processEliteSamples();
 				resetSamples();
 				cemt++;
 			}
-		}else{
-			//TODO trig learning-completed
-		}*/
+			
+		}
+
+		if(cemt == T){
+			FileLogger.getInstance().log();
+			FileLogger.getInstance().log("$$$ Larning Completed $$$");
+			FileLogger.getInstance().log();
+			this.teachingFinished = true;
+		}
 
 	}
-
-	/*public void update(int score){
-
-		if(numIteration < CEMiter){ //learning main loop
-
-			if(i < N){ //if population not complete
-
-				//draw xi from bernoulli of m (p of numIteration) (means get a policy from probability(t) fixed all along N) (~)
-				//evaluate score (OK)
-				//put score in array f ( should also reference which policy ) (todo)
-
-				i++;
-
-			}else{//population completed
-
-				//order f (todo)
-				//next epsilon = (f of rho) * N , set level threshold(???) 
-				//next E = {x of i | f(x of i) >= next epsilon} , get elite samples (todo & ???)
-				//update p' = ...
-				//update next p = alpha * ...
-
-				numIteration++;
+	
+	/** order-insert sample in the samples contanier */
+	private void insertSample(GameOutcome sample){
+		//TODO optimize: use iterators?
+		//TODO optimize: no need to order and store all the samples, only elite ones are needed
+		int it = 0;
+		boolean inserted = false;
+		while(it < outcomeSamples.size() && !inserted){
+			if(sample.getScore() > outcomeSamples.get(it).getScore()){
+				outcomeSamples.add(it, sample);
+				inserted = true;
 			}
+			it++;
+		}
+		if(!inserted){
+			outcomeSamples.add(sample);
+			inserted = true;
+		}
+	}
+	
+	/** update probabilities with elite samples extracted data. performed at end of each iteration */
+	private void processEliteSamples(){
+		
+		int lowerEliteSampleIndex = numEliteSamples - 1; // outcomeSamples.size() - 1;//TODO reset Math.min((int)Math.round(N/rhoInv), outcomeSamples.size() - 1); //rho*N - 1 = 49?;
+		int gamma = outcomeSamples.get(lowerEliteSampleIndex).getScore(); 
 
-
-		}else{ //learning complete
-			//TODO signal to Teacher or whatever to end.
+		FileLogger.getInstance().log();
+		FileLogger.getInstance().log("LowerScore is: " + gamma);
+		FileLogger.getInstance().log();	
+		
+		//update probp
+		//for(ogni slot j-esimo in probp: p){
+		for(int j = 0; j < this.probp.length; j++){
+			int counter_p = 0;
+		 	//for(policy elite: policy){
+			for(GameOutcome sample: outcomeSamples){
+				Policy policy = sample.getPolicy();
+	 			//if(slot j in policy != null){
+				if(policy.isRuleSlotNull(j)){
+		 			counter_p++;
+		 		}
+		 	}
+		 	probp[j] = counter_p / numEliteSamples;
+		 }
+		 	
+		//update probq
+		//for(ogni slot j-esimo in probq){
+		for(int j = 0; j < this.probq.length; j++){
+			int counter_q = 0;
+			//for(ogni regola k-esima in probq: q){
+			for(int k = 0; k <this.probq[j].length; k++){
+				for(GameOutcome sample: outcomeSamples){
+					Policy policy = sample.getPolicy();
+					//if(slot j in policy == k){
+					if(policy.hasRuleAt(j,k)){
+			 			counter_q++;
+					}
+				}
+				probq[j][k] = counter_q / numEliteSamples;
+			}
 		}
 
-	}*/
+	}
+	
+	public boolean isFinished(){
+		return this.teachingFinished;
+	}
+	
+	public void printProbabilities(){
+		
+		
+		
+	}
 
-	/*public void update(int score){
-
-		if(numIteration < CEMiter){ //learning main loop
-
-			int N = coeffBin();
-
-				//estrarre N possibili combinazioni di regole
-				//per ognuna delle possibili combinazioni calcolare lo score con quelle regole
-				//ordinarle in base allo score e prenderne le prime rho*N (o quanti te ne pare)
-				//queste fanno parte dell'insieme Elite
-
-
-			//aggiornare i parametri della distribuzione: probp e probq
-			//per ogni elemento j di probp, contare quant volte e' presente nelle combinazioni Elite
-			//probp[j] = quante volte e' presente in tutte le regole della combnazion / numero di elementi di Elite (rho * N)
-			//
-			numIteration++;
-		}else{ //learning complete
-			//TODO signal to Teacher or whatever to end.
-		}
-
-	}*/
-
-	public int coeffBin(){
+	/*public int coeffBin(){
 		int fk=1;
 		for(int i=this.K; i >0; i--){
 			fk=fk*i;
@@ -195,11 +196,6 @@ public class TeacherCEMethod {
 			fkm=fkm*i;
 		}
 		return fk/(fm*fkm);
-	}
-
-	//	public List<int> getExtractRules(){
-	//		
-	//	}
-
+	}*/
 
 }

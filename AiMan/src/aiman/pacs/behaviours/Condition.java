@@ -17,21 +17,21 @@ public final class Condition {
 	private final Direction direction;
 	private final double value; 
 	
-	private Policy policies;
+	private ObservationsHandler observator;
 	
-	public Condition(Policy policies, String obs, Direction dir, double val){
+	public Condition(ObservationsHandler observator, String obs, Direction dir, double val){
 		this.observation = obs;
 		this.direction = dir;
 		this.value = val;
 		
-		this.policies = policies;
+		this.observator = observator;
 	}
 	
 	public boolean check(){
 		if(direction == Direction.MIN){
-			return  (policies.observe(observation) <= value);
+			return  (observator.observe(observation) <= value);
 		}else{
-			return  (policies.observe(observation) > value);
+			return  (observator.observe(observation) > value);
 		}
 	} 
 }

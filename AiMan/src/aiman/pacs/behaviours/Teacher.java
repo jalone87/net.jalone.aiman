@@ -1,7 +1,9 @@
 package aiman.pacs.behaviours;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import net.jalone.jul4j.logging.*;
 
@@ -27,7 +29,7 @@ public class Teacher {
 	public enum TeachingState{
 		INITIALIZING,
 		TEACHING,
-		PLAYING
+		COMPLETE
 	}
 	
 	private List<Integer> resultsHistory;
@@ -43,7 +45,7 @@ public class Teacher {
 	private int K;		
 	
 	/** contains all the rules, either used or not */
-	private List<Rule> rulesPool; 
+	private Map<Integer, Rule> rulesPool; 
 
 	/** contain the actual rules used in the policy, if -1 slot is empty */
 	private int rulesSlots[]; 
@@ -65,8 +67,9 @@ public class Teacher {
 		this.resultsHistory = new LinkedList<Integer>();
 		
 		rulesSlots = new int[M]; 
-		policy = new Policy(new ObservationsHandler(this.pacman), M);
-		buildRuleBase();
+		ObservationsHandler observator = new ObservationsHandler(this.pacman);
+		policy = new Policy(observator, M);
+		buildRuleBase(observator);
 		cem = new TeacherCEMethod(M, K);
 	}
 	
@@ -75,25 +78,27 @@ public class Teacher {
 	}
 	
 	/**
-	 * evaluate the result of last experience
+	 * evaluate the result of last experience and teach the pac if is teaching
 	 * @param result of last game (until death)
 	 */
-	public void evaluate(int score){
-		FileLogger.getInstance().log("# Evaluating");
+	public void evaluateAndTeach(int score){
+		FileLogger.getInstance().log("# Evaluating...");
 		if(state == TeachingState.TEACHING){
 			resultsHistory.add(score);
 		}
 
 		FileLogger.getInstance().log("score: " + score);
-		updateProb(score);
-		
-		for(int i=0; i < M; i++){
-			if( random.nextDouble() < cem.probp[i]){  //TODO avoid direct access to members of CEM
-				rulesSlots[i] = getSlotRuleIndex(i);
-			}else{
-				rulesSlots[i] = -1;
-			}	
+
+		if(state == TeachingState.TEACHING){
+			teach(score);
 		}
+	}
+	
+	/** teach the pac (modify probabilities matrices) */
+	private void teach(int score){
+		FileLogger.getInstance().log("# Teaching...");
+		GameOutcome outcome = new GameOutcome(policy, score);
+		cem.update(outcome); //update probabilities matrices
 	}
 	
 	/**
@@ -115,67 +120,91 @@ public class Teacher {
 		throw new IndexOutOfBoundsException("Probability out of CDF");
 	}
 	
-	/**
-	 * 
-	 * @param score
-	 */
-	public void updateProb(int score){
-		cem.update(score);
+	public boolean isTeachingComplete(){
+		return state == TeachingState.COMPLETE;
 	}
-	 
+	
 	/**
-	 * perform learning task and update pac policy to start a new game/experience
+	 * create a new policy and associate it with the pac
 	 */
-	public void teach(LearningPac pac){
-		FileLogger.getInstance().log("# Teaching with policy:");
-		policy.clear();// = new Policy(new ObservationsHandler(pacman));
+	public void createAndGivePolicy(LearningPac pac){
 		
-		if(state == TeachingState.TEACHING){ //pick the next attempt to find a better policy
+		if(cem.isFinished()){
+			state = TeachingState.COMPLETE;
+		}
+		
+		if(state == TeachingState.TEACHING){
+			FileLogger.getInstance().log("# Teaching with policy:");
+		}else if(state == TeachingState.COMPLETE){
+			FileLogger.getInstance().log("# Playing with policy:");
+		}
+		
+		//TODO this sucks, since each step rebuilds rulebase just cos observer for conditions change with game. does it?
+		ObservationsHandler observator = new ObservationsHandler(this.pacman);
+		policy = new Policy(observator, M);
+		buildRuleBase(observator);
+
+		//TODO rulesSlots should be in learningPac
+		for(int i=0; i < M; i++){
+			if( random.nextDouble() < cem.probp[i]){  //TODO avoid direct access to members of CEM
+				rulesSlots[i] = getSlotRuleIndex(i);
+			}else{
+				rulesSlots[i] = -1;
+			}	
+		}
+		
+		//TODO this should not be in teacher, but in learningPac.adaptPolicy method, since its learning pac that create policy not teacher. 
+		// teacher should only modify probabilities of pac??????
+		if(state == TeachingState.TEACHING || state == TeachingState.COMPLETE){ //pick the next attempt to find a better policy
 			for(int i=0; i<M; i++){
 				if(rulesSlots[i] >= 0){
 					Rule rule = rulesPool.get(rulesSlots[i]); 
-					policy.pushRule(rule);
+					policy.pushRule(rule, i);
 				}
 			}
 			FileLogger.getInstance().log("POLICY SIZE: " + policy.size());
 			FileLogger.getInstance().log("POLICY: " + policy);
-		}else if(state == TeachingState.PLAYING){ //get the playing policy ( the default one )
-			//TODO pick the saved or default policy (from file or ecc)
 		}
-		pac.learnPolicy(policy);
+		pac.adoptPolicy(policy);
 	}
 	
 	/**
-	 * 
+	 * create all the existing rules, wether used or not in learning or in any policy
 	 */
-	private void buildRuleBase(){
+	private void buildRuleBase(ObservationsHandler observator){
 		//TODO better if from xml file
-		this.rulesPool = new LinkedList<Rule>();
+		this.rulesPool = new HashMap<Integer, Rule>();
+		
+		int id = 0;
 		
 		//to escape if ghost is close
-		Rule rule = new Rule(AutoPac.ACTION_FROM_GHOST, true, policy); 
-		rule.pushCondition(new Condition(policy, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MIN, 4));
-		rulesPool.add(rule);
+		Rule rule = new Rule(id, AutoPac.ACTION_FROM_GHOST, true); 
+		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MIN, 4));
+		rulesPool.put(id, rule);
 		
 		//don't escape if ghost far
-		rule = new Rule(AutoPac.ACTION_FROM_GHOST, false, policy);
-		rule.pushCondition(new Condition(policy, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MAX, 4));
-		rulesPool.add(rule);
+		id++;
+		rule = new Rule(id, AutoPac.ACTION_FROM_GHOST, false);
+		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MAX, 4));
+		rulesPool.put(id, rule);
 
 		//to closer energizer
-		rule = new Rule(AutoPac.ACTION_TO_POWERDOT, true, policy);
-		rule.pushCondition(new Condition(policy, ObservationsHandler.OBSERVATION_NEAREST_POWERDOT, Direction.MIN, 6));
-		rulesPool.add(rule);
+		id++;
+		rule = new Rule(id, AutoPac.ACTION_TO_POWERDOT, true);
+		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_POWERDOT, Direction.MIN, 6));
+		rulesPool.put(id, rule);
 		
 		//to closer energizer
-		rule = new Rule(AutoPac.ACTION_TO_POWERDOT, false, policy);
-		rule.pushCondition(new Condition(policy, ObservationsHandler.OBSERVATION_NEAREST_POWERDOT, Direction.MAX, 6));
-		rulesPool.add(rule);
+		id++;
+		rule = new Rule(id, AutoPac.ACTION_TO_POWERDOT, false);
+		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_POWERDOT, Direction.MAX, 6));
+		rulesPool.put(id, rule);
 
 		//to closer dot
-		rule = new Rule(AutoPac.ACTION_TO_DOT, true, policy);
-		rule.pushCondition(new Condition(policy, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MIN, 100)); //100 should be max map diagonal, but its ok
-		rulesPool.add(rule);
+		id++;
+		rule = new Rule(id, AutoPac.ACTION_TO_DOT, true);
+		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MIN, 100)); //100 should be max map diagonal, but its ok
+		rulesPool.put(id, rule);
 
 		K = rulesPool.size();
 		

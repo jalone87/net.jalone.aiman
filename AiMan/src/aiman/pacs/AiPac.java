@@ -53,7 +53,6 @@ public class AiPac extends AutoPac {
 	
 	@Override
 	public void buildPolicy(){
-		//TODO passing "policies" as parameter to stuff to be pushed in policies is a bad thin. make policies manage themselves 
 		
 		//to escape if ghost is close
 		Rule tpol = new Rule(AutoPac.ACTION_FROM_GHOST, true, policy); 

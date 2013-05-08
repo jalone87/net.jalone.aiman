@@ -14,17 +14,19 @@ public class Rule {
 	private List<Condition> conditions;
 	private String action;
 	private boolean switchTo;
+	private int id;
 	
-	private Policy policiesManager;
-	
-	public Rule(String action, boolean switchTo, Policy policiesManager){
+	public Rule(int id, String action, boolean switchTo){
 		
 		this.conditions = new ArrayList<Condition>();
-
+		this.id = id;
 		this.action = action;
 		this.switchTo = switchTo;
 		
-		this.policiesManager = policiesManager;
+	}
+	
+	public int getId(){
+		return this.id;
 	}
 	
 	public void pushCondition(Condition condition){
@@ -39,9 +41,9 @@ public class Rule {
 		return ok;
 	}
 	
-	public void switchAction(){
+	public void switchAction(Policy policy){
 		if(check()){
-			policiesManager.switchAction(action, switchTo);
+			policy.switchAction(action, switchTo);
 		}
 	}
 	
