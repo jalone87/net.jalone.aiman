@@ -176,8 +176,7 @@ public class TeacherCEMethod {
 		return this.teachingFinished;
 	}
 	
-	public void printProbabilities(){
-		
+	public void printProbabilities(){	
 		
 		
 	}
