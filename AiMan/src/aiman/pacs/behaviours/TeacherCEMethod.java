@@ -1,5 +1,6 @@
 package aiman.pacs.behaviours;
 
+import java.text.DecimalFormat;
 import java.util.LinkedList;
 
 import net.jalone.jul4j.logging.FileLogger;
@@ -20,21 +21,21 @@ public class TeacherCEMethod {
 	//####CEM parameters
 	
 	/**CEM iteration main loop max iterations*/ //(T)
-	private static final int	T 		= 5;//50;	
+	private static final int	T 		= 10;//50;	
 	
 	/**population size, possible ways of drawings M elements from pool into slots, was 1000*/
-	private static final int 	N 		= 3;//200;		
+	private static final int 	N 		= 1000;//200;		
 	
 	/**selection ratio */
-	private static final double	 rho 	= 0.05; //TODO set properly
-	private static final int	 rhoInv	= 3;  //TODO set really inverse of rho
-	private int numEliteSamples 		= 2;
+	//private static final double	 rho 	= 0.05; //TODO set properly
+	//private static final int	 rhoInv	= 3;  //TODO set really inverse of rho
+	private int numEliteSamples 		= 20;
 	
 	/**step size per-episode ( the per-instance one alfaPrime = alpha/(rho*N) ) */
-	private static final double alfa	= 0.6;		
+	private static final double alpha	= 0.6;		
 	
 	/**decay rate, decreased value of p(j) for each step to not use a slot (jth) */
-	private static final double beta 	= 0.98;		
+	private static final double betha 	= 0.98;		
 
 	//#### CEM probabilities matrices //TODO make private and set accessors
 	
@@ -150,7 +151,7 @@ public class TeacherCEMethod {
 		 			counter_p++;
 		 		}
 		 	}
-		 	probp[j] = counter_p / numEliteSamples;
+		 	probp[j] = betha * (counter_p / numEliteSamples);
 		 }
 		 	
 		//update probq
@@ -166,9 +167,10 @@ public class TeacherCEMethod {
 			 			counter_q++;
 					}
 				}
-				probq[j][k] = counter_q / numEliteSamples;
+				probq[j][k] = alpha * (counter_q / numEliteSamples);
 			}
 		}
+		this.printProbabilities();
 
 	}
 	
@@ -177,8 +179,33 @@ public class TeacherCEMethod {
 	}
 	
 	public void printProbabilities(){	
+
+		FileLogger.getInstance().log();
+		LearningLogger.getInstance().log();
 		
 		
+		//print probp
+		String p = "";
+		DecimalFormat decim = new DecimalFormat("0.00");
+		for(int i = 0; i<probp.length; i++){
+			p += Double.parseDouble(decim.format(probp[i])) + " ";
+		}
+		FileLogger.getInstance().log(p);
+		FileLogger.getInstance().log();
+		LearningLogger.getInstance().log(p);
+		LearningLogger.getInstance().log();
+		
+		//print probq
+		for(int i = 0; i<probq.length; i++){
+			String q = "";
+			for(int j = 0; j<probq[i].length; j++){
+				q += Double.parseDouble(decim.format(probq[i][j])) + " ";
+			}
+			FileLogger.getInstance().log(q);
+			LearningLogger.getInstance().log(q);
+		}
+		FileLogger.getInstance().log();
+		LearningLogger.getInstance().log();
 	}
 
 	/*public int coeffBin(){

@@ -25,12 +25,15 @@ public class AiPac extends AutoPac {
 	private static final long serialVersionUID = 1L;
 	
 	private Policy policy;
+	ObservationsHandler obs;
 
     /** Creates a Pac assigned to the given tag, puts him in pacman.agents at the start location, and schedules him on the schedule. */
     public AiPac(PacMan pacman, int tag) {
         super(pacman, tag);
         
-		this.policy = new Policy(new ObservationsHandler(pacman), 3);
+        obs = new ObservationsHandler(pacman); 
+		this.policy = new Policy(obs, 3);
+		
     }
     
 	@Override
@@ -55,18 +58,18 @@ public class AiPac extends AutoPac {
 	public void buildPolicy(){
 		
 		//to escape if ghost is close
-		Rule tpol = new Rule(AutoPac.ACTION_FROM_GHOST, true, policy); 
-		tpol.pushCondition(new Condition(policy, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MIN, 6));
+		Rule tpol = new Rule(0, AutoPac.ACTION_FROM_GHOST, true); 
+		tpol.pushCondition(new Condition(obs, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MIN, 6));
 		policy.pushRule(tpol);
 		
 		//don't escape if ghost far
-		tpol = new Rule(AutoPac.ACTION_FROM_GHOST, false, policy);
-		tpol.pushCondition(new Condition(policy, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MAX, 6));
+		tpol = new Rule(1, AutoPac.ACTION_FROM_GHOST, false);
+		tpol.pushCondition(new Condition(obs, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MAX, 6));
 		policy.pushRule(tpol);
 		
 		//to closer dot
-		tpol = new Rule(AutoPac.ACTION_TO_DOT, true, policy);
-		tpol.pushCondition(new Condition(policy, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MIN, 10000));
+		tpol = new Rule(2, AutoPac.ACTION_TO_DOT, true);
+		tpol.pushCondition(new Condition(obs, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MIN, 10000));
 		policy.pushRule(tpol);
 	}
 	

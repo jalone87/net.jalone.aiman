@@ -29,6 +29,7 @@ public enum Action {
             case E: return W;
             case S: return N;
             case W: return E;
+            case NOTHING: return NOTHING;
         }
         return NOTHING;
     }

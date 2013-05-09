@@ -98,8 +98,8 @@ public class PacMan extends SimState {
 		dots = new CookieJar(1.0, maze.getWidth(), maze.getHeight());
 		actionGoals = new Continuous2D(1.0, maze.getWidth(), maze.getHeight());
 
-		resetGame();
-		teacher.setState(TeachingState.TEACHING); 
+		teacher.setState(TeachingState.TEACHING);
+		resetGame(); 
 	}
 
 	/**

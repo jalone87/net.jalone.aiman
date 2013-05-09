@@ -29,7 +29,7 @@ public class LearningLogger extends Logger{
         StackTraceElement main = stack[stack.length - 1];
         String mainClass = main.getClassName ();
 		try {
-			logger = new PrintWriter(System.getProperty("user.home") + "/" + mainClass +".log", "UTF-8");
+			logger = new PrintWriter(System.getProperty("user.home") + "/" + mainClass +"learn.log", "UTF-8");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {

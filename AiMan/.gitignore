@@ -7,3 +7,10 @@
 
 # Trashy files..#
 .DS_Store
+
+# generated files
+bin/
+gen/
+
+# Local configuration file (sdk path, etc)
+local.properties

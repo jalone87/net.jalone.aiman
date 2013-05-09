@@ -71,6 +71,7 @@ public class Teacher {
 		policy = new Policy(observator, M);
 		buildRuleBase(observator);
 		cem = new TeacherCEMethod(M, K);
+		cem.printProbabilities();
 	}
 	
 	public void setState(TeachingState s){
