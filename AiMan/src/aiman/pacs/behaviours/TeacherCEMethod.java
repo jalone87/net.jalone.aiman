@@ -21,21 +21,21 @@ public class TeacherCEMethod {
 	//####CEM parameters
 	
 	/**CEM iteration main loop max iterations*/ //(T)
-	private static final int	T 		= 10;//50;	
+	private static final int	T 		= 20;//50;	
 	
 	/**population size, possible ways of drawings M elements from pool into slots, was 1000*/
-	private static final int 	N 		= 1000;//200;		
+	private static final int 	N 		= 200;//200;		
 	
 	/**selection ratio */
 	//private static final double	 rho 	= 0.05; //TODO set properly
 	//private static final int	 rhoInv	= 3;  //TODO set really inverse of rho
-	private int numEliteSamples 		= 20;
+	private int numEliteSamples 		= 10;
 	
 	/**step size per-episode ( the per-instance one alfaPrime = alpha/(rho*N) ) */
 	private static final double alpha	= 0.6;		
 	
 	/**decay rate, decreased value of p(j) for each step to not use a slot (jth) */
-	private static final double betha 	= 0.98;		
+	private static final double beta 	= 0.98;		
 
 	//#### CEM probabilities matrices //TODO make private and set accessors
 	
@@ -145,13 +145,17 @@ public class TeacherCEMethod {
 			int counter_p = 0;
 		 	//for(policy elite: policy){
 			for(GameOutcome sample: outcomeSamples){
+				if(sample.getScore() < gamma){
+					break;
+				}
 				Policy policy = sample.getPolicy();
 	 			//if(slot j in policy != null){
-				if(policy.isRuleSlotNull(j)){
+				if(!policy.isRuleSlotNull(j)){
 		 			counter_p++;
 		 		}
 		 	}
-		 	probp[j] = betha * (counter_p / numEliteSamples);
+		 	probp[j] = 1.0 * counter_p / numEliteSamples;
+		 	//LearningLogger.getInstance().log(counter_p + " " + numEliteSamples);
 		 }
 		 	
 		//update probq
@@ -161,17 +165,41 @@ public class TeacherCEMethod {
 			//for(ogni regola k-esima in probq: q){
 			for(int k = 0; k <this.probq[j].length; k++){
 				for(GameOutcome sample: outcomeSamples){
+					if(sample.getScore() < gamma){
+						break;
+					}
 					Policy policy = sample.getPolicy();
 					//if(slot j in policy == k){
 					if(policy.hasRuleAt(j,k)){
 			 			counter_q++;
 					}
 				}
-				probq[j][k] = alpha * (counter_q / numEliteSamples);
+				probq[j][k] = 1.0 * counter_q / numEliteSamples;
 			}
+			normalizeQ(j);
 		}
+	
 		this.printProbabilities();
 
+	}
+	
+	public void normalizeQ(int j){
+		double sum = 0;
+		for(int i = 0; i<probq[j].length; i++){
+			sum += probq[j][i];
+		}
+		
+		if(sum > 0.00001){
+			//normalize
+			for(int i = 0; i<probq[j].length; i++){
+				probq[j][i] = probq[j][i] /sum;
+			}
+		}else{
+			//back to uniform probability
+			for(int i = 0; i<probq[j].length; i++){
+				probq[j][i] = 1.0 / probq[j].length;
+			}
+		}
 	}
 	
 	public boolean isFinished(){

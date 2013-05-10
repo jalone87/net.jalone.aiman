@@ -189,10 +189,10 @@ public class Teacher {
 		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MAX, 4));
 		rulesPool.put(id, rule);
 
-		//to closer energizer
+		//to closer dot
 		id++;
-		rule = new Rule(id, AutoPac.ACTION_TO_POWERDOT, true);
-		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_POWERDOT, Direction.MIN, 6));
+		rule = new Rule(id, AutoPac.ACTION_TO_DOT, true);
+		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MIN, 100)); //100 should be max map diagonal, but its ok
 		rulesPool.put(id, rule);
 		
 		//to closer energizer
@@ -201,14 +201,14 @@ public class Teacher {
 		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_POWERDOT, Direction.MAX, 6));
 		rulesPool.put(id, rule);
 
-		//to closer dot
+		//to closer energizer
 		id++;
-		rule = new Rule(id, AutoPac.ACTION_TO_DOT, true);
-		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MIN, 100)); //100 should be max map diagonal, but its ok
+		rule = new Rule(id, AutoPac.ACTION_TO_POWERDOT, true);
+		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_POWERDOT, Direction.MIN, 6));
 		rulesPool.put(id, rule);
 
 		K = rulesPool.size();
-		
+
 	}
 	
 	/**
@@ -220,8 +220,9 @@ public class Teacher {
 			int lower = resultsHistory.get(0);
 			int higher = 0;
 			int average = 0;
+			LearningLogger.getInstance().log();
 			for(int r: resultsHistory){
-				System.out.println("Res "+i+": "+r);
+				LearningLogger.getInstance().log(i+" "+r);
 				average += r;
 				if(r>higher)
 					higher = r;
@@ -229,6 +230,7 @@ public class Teacher {
 					lower = r;
 				i++;
 			}
+			LearningLogger.getInstance().log();
 			System.out.println("Lower: " + lower);
 			System.out.println("Average: " + (average/resultsHistory.size()));
 			System.out.println("Higher: " + higher);
