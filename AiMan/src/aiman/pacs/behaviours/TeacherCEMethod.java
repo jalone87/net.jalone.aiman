@@ -154,7 +154,7 @@ public class TeacherCEMethod {
 		 			counter_p++;
 		 		}
 		 	}
-		 	probp[j] = 1.0 * counter_p / numEliteSamples;
+		 	probp[j] = 1.0 * counter_p / numEliteSamples; //TODO multiply beta here
 		 	//LearningLogger.getInstance().log(counter_p + " " + numEliteSamples);
 		 }
 		 	
@@ -174,7 +174,7 @@ public class TeacherCEMethod {
 			 			counter_q++;
 					}
 				}
-				probq[j][k] = 1.0 * counter_q / numEliteSamples;
+				probq[j][k] = 1.0 * counter_q / numEliteSamples; //TODO multiply alpha here
 			}
 			normalizeQ(j);
 		}
