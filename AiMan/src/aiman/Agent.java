@@ -138,18 +138,23 @@ public abstract class Agent implements Oriented2D
             case W:
                 x = pacman.agents.stx(x - speed());
                 break;
+            case NOTHING: 
+            	//TODO: this is just a workaround to let pac be immobile
+            	x = Math.round(location.x);
+            	y = Math.round(location.y);
+            	break; 
             }
+
         changeLocation(x, y);
         lastAction = action;
         }
 
     /** Determines if the agent can move with the given action (N/W/S/E/NOTHING) without bumping into a wall.  */
-    public boolean isPossibleToDoAction(int action)
-        {
+    public boolean isPossibleToDoAction(int action){
         if (action == NOTHING)
-            {
+        {
             return false;  // no way
-            }
+        }
         IntPBMGrid2D maze = pacman.maze;
         int[][] field = maze.field;
 

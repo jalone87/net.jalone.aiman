@@ -177,9 +177,10 @@ public class Teacher {
 		this.rulesPool = new HashMap<Integer, Rule>();
 		
 		int id = 0;
+		Rule rule = null;
 		
 		//to escape if ghost is close
-		Rule rule = new Rule(id, AutoPac.ACTION_FROM_GHOST, true); 
+/*		rule = new Rule(id, AutoPac.ACTION_FROM_GHOST, true); 
 		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MIN, 4));
 		rulesPool.put(id, rule);
 		
@@ -188,7 +189,7 @@ public class Teacher {
 		rule = new Rule(id, AutoPac.ACTION_FROM_GHOST, false);
 		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_GHOST, Direction.MAX, 4));
 		rulesPool.put(id, rule);
-
+*/
 		//to closer dot
 		id++;
 		rule = new Rule(id, AutoPac.ACTION_TO_DOT, true);
@@ -200,13 +201,13 @@ public class Teacher {
 		rule = new Rule(id, AutoPac.ACTION_TO_POWERDOT, false);
 		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_POWERDOT, Direction.MAX, 6));
 		rulesPool.put(id, rule);
-
+/*
 		//to closer energizer
 		id++;
 		rule = new Rule(id, AutoPac.ACTION_TO_POWERDOT, true);
 		rule.pushCondition(new Condition(observator, ObservationsHandler.OBSERVATION_NEAREST_POWERDOT, Direction.MIN, 6));
 		rulesPool.put(id, rule);
-
+*/
 		K = rulesPool.size();
 
 	}
@@ -220,17 +221,32 @@ public class Teacher {
 			int lower = resultsHistory.get(0);
 			int higher = 0;
 			int average = 0;
-			LearningLogger.getInstance().log();
-			for(int r: resultsHistory){
-				LearningLogger.getInstance().log(i+" "+r);
-				average += r;
-				if(r>higher)
-					higher = r;
-				if(r<lower)
-					lower = r;
-				i++;
+			
+			Logger logger = LearningLogger.getInstance();
+			logger.log();
+			
+			try{
+			
+				for(int r: resultsHistory){
+					logger.log(i+" "+r);
+					average += r;
+					if(r>higher)
+						higher = r;
+					if(r<lower)
+						lower = r;
+					i++;
+				}
+				logger.log();
+			}catch(Exception e){
+				System.out.println("Samples: " + resultsHistory.size());
+				System.out.println("Lower: " + lower);
+				System.out.println("Average: " + (average/resultsHistory.size()));
+				System.out.println("Higher: " + higher);
+				System.out.println(e.getMessage());
+				e.printStackTrace();
 			}
-			LearningLogger.getInstance().log();
+
+			System.out.println("Samples: " + resultsHistory.size());
 			System.out.println("Lower: " + lower);
 			System.out.println("Average: " + (average/resultsHistory.size()));
 			System.out.println("Higher: " + higher);

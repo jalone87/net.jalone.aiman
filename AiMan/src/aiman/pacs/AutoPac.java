@@ -30,6 +30,9 @@ public abstract class AutoPac extends Pac {
 
 	private static final long serialVersionUID = 1L;
 	
+	/** true to let the pac continue to move around even if no action for actual state is provided by policy */
+	private static final boolean CONTINUE_IF_NO_ACTION = false;
+	
 	public static final String  NO_ACTION = "NoAction";
 	
 	public static final String  ACTION_TO_DOT 					= "ToDot";
@@ -65,24 +68,37 @@ public abstract class AutoPac extends Pac {
 		Method methodToCall;
 		int nextAction = NOTHING;
 		
+//		if(lastAction == NOTHING){
+//			nextAction = actionKeepDirection();
+//		}
+		
 		try {
 			methodToCall = this.getClass().getMethod("action"+actionToCall);
 			nextAction = (Integer) methodToCall.invoke(this);
-		} catch (ObjectNotFound e) {
+
+		}catch (ObjectNotFound e) {
 			System.out.println(e.getMessage());
 			nextAction = actionKeepDirection();
-		} catch (SecurityException e) { 		e.printStackTrace();
+		
+		} catch (SecurityException e) { 		
+			e.printStackTrace();
+		
 		} catch (NoSuchMethodException e) {		
-
-			//FileLogger.getInstance().log("No Action called. " + e.getMessage());
-			nextAction = actionKeepDirection();
-			//e.printStackTrace();
+			
+			if(CONTINUE_IF_NO_ACTION){
+				nextAction = actionKeepDirection(); 
+			}else{
+				nextAction = NOTHING; 
+			}
+			
 		} catch (IllegalArgumentException e) {	e.printStackTrace();
 		} catch (IllegalAccessException e) {	e.printStackTrace();
+		
 		} catch (InvocationTargetException e) {	
 			System.err.println(e.getCause().getMessage());
 			nextAction = actionKeepDirection();
 		}
+		
 		if(lastAction == NOTHING){
 			nextAction = actionKeepDirection();
 		}

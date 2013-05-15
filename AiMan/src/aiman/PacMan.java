@@ -110,6 +110,11 @@ public class PacMan extends SimState {
 		if(teacher.isTeachingComplete()){
 			isLearning = false;
 			teacher.printResultsHistory();
+			try {
+				wait(5000);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
 			this.finish();
 		}
 		

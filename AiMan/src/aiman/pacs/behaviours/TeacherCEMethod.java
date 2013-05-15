@@ -21,15 +21,15 @@ public class TeacherCEMethod {
 	//####CEM parameters
 	
 	/**CEM iteration main loop max iterations*/ //(T)
-	private static final int	T 		= 20;//50;	
+	private static final int	T 		= 10;
 	
 	/**population size, possible ways of drawings M elements from pool into slots, was 1000*/
-	private static final int 	N 		= 200;//200;		
+	private static final int 	N 		= 200;		
 	
 	/**selection ratio */
 	//private static final double	 rho 	= 0.05; //TODO set properly
 	//private static final int	 rhoInv	= 3;  //TODO set really inverse of rho
-	private int numEliteSamples 		= 10;
+	private int numEliteSamples 		= 2;
 	
 	/**step size per-episode ( the per-instance one alfaPrime = alpha/(rho*N) ) */
 	private static final double alpha	= 0.6;		
@@ -103,7 +103,9 @@ public class TeacherCEMethod {
 
 		if(cemt == T){
 			FileLogger.getInstance().log();
-			FileLogger.getInstance().log("$$$ Larning Completed $$$");
+			FileLogger.getInstance().log("-------------------------------------------------------");
+			FileLogger.getInstance().log("--------------$$$ Larning Completed $$$----------------");
+			FileLogger.getInstance().log("-------------------------------------------------------");
 			FileLogger.getInstance().log();
 			this.teachingFinished = true;
 		}
